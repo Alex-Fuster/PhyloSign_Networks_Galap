@@ -246,28 +246,7 @@ We observe decreases in correlation with the addition of some dimensions (at aro
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################################################## Continuing Madelaine's script
+#######################################################
 
 
 
@@ -303,8 +282,6 @@ View(corr.phy_matrix)
 ```
 
 
-
-
 procrustes
 ```{r}
 pcoa_pred.j <- wcmdscale(Matrice.dist.diets, eig = T, add = "cailliez") 
@@ -325,8 +302,6 @@ vare.proc
 summary(vare.proc)
 
 ```
-
-
 
 
 
@@ -352,22 +327,6 @@ mantel.test(Matrice.dist.diets2,Matrice.dist.phy) #P=0.087
 ```
 
 
-Calculating distance matrices as Madelaine did
-
-```{r}
-
-```
-
-
-
-
-
-
-#Method for finding the wright dimensionality
-
-```{r}
-
-```
 
 
 
