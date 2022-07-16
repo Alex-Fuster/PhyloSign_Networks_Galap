@@ -3,15 +3,6 @@ title: "Procrustes - Uncalibrated Tree"
 output: html_notebook
 ---
 
-#####Procrustes et PCOA Uncalibrated tree#####
-#Script pour les analyses procrustes
-#Création de matrices de distance/dissimilarité pour le metaweb et l'arbre phylogénétique
-#Pcoa sur les matrices de distance/dissimilarité
-#Comparaison des Pcoa avec des tests procrustes
-#Création de figures pour illustrer les résultats
-
-#Les analyses originales ont été faite avec le package vegan et des matrices de dissimilarité de Jacquard
-
 
 
 ```{r}
@@ -45,20 +36,20 @@ library(ggplot2)
 
 ###################### Metaweb #######################
 
-#Taxonomie des espèces
-Taxo <- read.csv2(file = "../Phylo_Nets_Galapagos/Data_madelaine/Metaweb_taxo.csv")[-c(1:11),2:13]
+#Taxonomy of species
+Taxo <- read.csv2(file = "../Phylo.sig_Gal/Data/Metaweb_taxo.csv")[-c(1:11),2:13]
 
 #Metaweb (Adjacency matrix)
-Metaweb <- read.csv2(file = "../Phylo_Nets_Galapagos/Data_madelaine/Metaweb_vertebrate_Genus.csv", stringsAsFactors = F, row.names = "X")
+Metaweb <- read.csv2(file = "../Phylo.sig_Gal/Data/Metaweb_vertebrate_Genus.csv", stringsAsFactors = F, row.names = "X")
 colnames(Metaweb) <- stringi::stri_replace_all(colnames(Metaweb), replacement = " ", regex = "[.]")
 
 
 #Sp list
-#Pour la similarité entre les prédateurs#
+#Predators similarity#
 Metaweb_dj_pred <- as.matrix(vegdist(Metaweb[-which(rowSums(Metaweb) == 0),], method = "jac", binary = T)) #Jacquard avec vegan
 Metaweb_dj_pred <- Metaweb_dj_pred[order(rownames(Metaweb_dj_pred)),order(colnames(Metaweb_dj_pred))]
 
-#Créer une liste des prédateurs
+#Create list of predators
 sp_list <- colnames(Metaweb_dj_pred)#stringi::stri_replace_all(colnames(Metaweb_dj_pred), replacement = "_", regex = " ")
 
 
@@ -85,7 +76,7 @@ Metaweb.r <- Metaweb[which(rownames(Metaweb) %in% Reptiles$scientific_name), whi
 
 ###################### Metaweb #######################
 
-phylo.tree <- phylobase::readNexus("../Phylo_Nets_Galapagos/Data_madelaine/GPS_all_verts.nwk")
+phylo.tree <- phylobase::readNexus("../Phylo.sig_Gal/Data/GPS_all_verts.nwk")
 phylo.tree <- as(phylo.tree, "phylo")
 
 #Correct errors in phylo.tree$tip
@@ -632,131 +623,3 @@ Metaweb.corr.d_plot.r<-ggplot(Dataframe_d_corr.r, aes(x = d, y = corr.vector.r))
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##Transformer les matrices d'interaction en matrice de dissimilarité##
-
-#Pour la similarité entre les prédateurs#
-Metaweb_dj_pred <- as.matrix(vegdist(Metaweb[-which(rowSums(Metaweb) == 0),], method = "jac", binary = T)) #Jacquard avec vegan
-Metaweb_dj_pred <- Metaweb_dj_pred[order(rownames(Metaweb_dj_pred)),order(colnames(Metaweb_dj_pred))]
-
-#Créer une liste des prédateurs
-sp_list <- colnames(Metaweb_dj_pred)#stringi::stri_replace_all(colnames(Metaweb_dj_pred), replacement = "_", regex = " ")
-
-##Faire des pcoa pour les metaweb##
-
-pcoa_pred.j <- wcmdscale(Metaweb_dj_pred, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa_pred.j$eig/sum(pcoa_pred.j$eig)) #Trouver où on atteint 80% de la variance expliquée
-
-#Extraire les scores des axes principaux
-
-scores.pred.j <- pcoa_pred.j$points[,1:30]
-
-#####Arbres phylogénétiques#####
-
-# Drop absent species
-dropme <- phylo.tree$tip.label[!phylo.tree$tip.label %in% sp_list]
-sub.tree <- drop.tip(phylo.tree, dropme)
-
-# Calcul de la matrice de distance et la mettre en ordre alphabétique
-dist_mat <- cophenetic(sub.tree)
-dist_mat <- dist_mat[order(rownames(dist_mat)),order(colnames(dist_mat))]
-
-# PCOa sur la matrice de distance
-
-pcoa.phylo <- wcmdscale(dist_mat, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.phylo$eig/sum(pcoa.phylo$eig))#Trouver où on atteint 80% de la variance expliquée
-
-# Extraction des scores d'axes
-
-scores.phylo <- pcoa.phylo$points[,1:15]
-
-#####Procrustes analysis#####
-
-proj <- procrustes(scores.phylo, scores.pred.j)
-
-protest(X = scores.phylo, Y = scores.pred.j, permutations = 999)
-
-#############Diviser les analyses ci-haut par clades##############
-
-#Species list by group
-Bird <- Taxo[Taxo$Class == "Aves",]
-Mammals <- Taxo[Taxo$Class == "Mammalia",]
-Reptiles <- Taxo[Taxo$Class == "Reptilia",]
-
-# Subset of phylo_tree by group
-sub.tree.Bird <- drop.tip(sub.tree, sub.tree$tip.label[!sub.tree$tip.label %in% Bird$scientific_name])
-sub.tree.Mammals <- drop.tip(sub.tree, sub.tree$tip.label[!sub.tree$tip.label %in% Mammals$scientific_name])
-sub.tree.Reptiles <- drop.tip(sub.tree, sub.tree$tip.label[!sub.tree$tip.label %in% Reptiles$scientific_name])
-
-# Calcul de la matrice de distance
-dist_mat_Bird <- cophenetic(sub.tree.Bird)
-dist_mat_Bird <- dist_mat_Bird[order(rownames(dist_mat_Bird)),order(colnames(dist_mat_Bird))]
-
-dist_mat_Mammals <- cophenetic(sub.tree.Mammals)
-dist_mat_Mammals <- dist_mat_Mammals[order(rownames(dist_mat_Mammals)),order(colnames(dist_mat_Mammals))]
-
-dist_mat_Reptiles <- cophenetic(sub.tree.Reptiles)
-dist_mat_Reptiles <- dist_mat_Reptiles[order(rownames(dist_mat_Reptiles)),order(colnames(dist_mat_Reptiles))]
-
-# PCOa sur la matrice de distance
-
-pcoa.phylo.Bird <- wcmdscale(dist_mat_Bird, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.phylo.Bird$eig/sum(pcoa.phylo.Bird$eig))#Trouver où on atteint 80% de la variance expliquée
-
-pcoa.phylo.Mammals <- wcmdscale(dist_mat_Mammals, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.phylo.Mammals$eig/sum(pcoa.phylo.Mammals$eig))#Trouver où on atteint 80% de la variance expliquée
-
-pcoa.phylo.Reptiles <- wcmdscale(dist_mat_Reptiles, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.phylo.Reptiles$eig/sum(pcoa.phylo.Reptiles$eig))#Trouver où on atteint 80% de la variance expliquée
-
-# Extraction des scores d'axes
-
-scores.phylo.Bird <- pcoa.phylo.Bird$points[,1:8]
-scores.phylo.Mammals <- pcoa.phylo.Mammals$points[,1:3]
-scores.phylo.Reptiles <- pcoa.phylo.Reptiles$points[,1:3]
-
-#Foodweb par groupe
-
-Metaweb_Bird <- Metaweb_dj_pred[which(rownames(Metaweb_dj_pred) %in% Bird$scientific_name), which(colnames(Metaweb_dj_pred) %in% Bird$scientific_name)]
-Metaweb_Mammals <- Metaweb_dj_pred[which(rownames(Metaweb_dj_pred) %in% Mammals$scientific_name), which(colnames(Metaweb_dj_pred) %in% Mammals$scientific_name)]
-Metaweb_Reptiles <- Metaweb_dj_pred[which(rownames(Metaweb_dj_pred) %in% Reptiles$scientific_name), which(colnames(Metaweb_dj_pred) %in% Reptiles$scientific_name)]
-
-pcoa.Bird <- wcmdscale(Metaweb_Bird, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.Bird$eig/sum(pcoa.Bird$eig))#Trouver où on atteint 80
-
-pcoa.Mammals <- wcmdscale(Metaweb_Mammals, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.Mammals$eig/sum(pcoa.Mammals$eig))#Trouver où on atteint 80
-
-pcoa.Reptiles <- wcmdscale(Metaweb_Reptiles, eig = T, add = "cailliez") #Cailliez pour que les valeurs propres soient positives
-cumsum(pcoa.Reptiles$eig/sum(pcoa.Reptiles$eig))#Trouver où on atteint 80
-
-scores.Bird <- pcoa.Bird$points[,1:17]
-scores.Mammals <- pcoa.Mammals$points[,1:8]
-scores.Reptiles <- pcoa.Reptiles$points[,1:8]
-
-#####Procrustes analysis by group#####
-
-proj.Bird <- procrustes(scores.phylo.Bird, scores.Bird)
-proj.Mammals <- procrustes(scores.phylo.Mammals, scores.Mammals)
-proj.Reptiles <- procrustes(scores.phylo.Reptiles, scores.Reptiles)
-
-protest(X = scores.phylo.Bird, Y = scores.Bird, permutations = 999)
-protest(X = scores.phylo.Mammals, Y = scores.Mammals, permutations = 999)
-protest(X = scores.phylo.Reptiles, Y = scores.Reptiles, permutations = 999)

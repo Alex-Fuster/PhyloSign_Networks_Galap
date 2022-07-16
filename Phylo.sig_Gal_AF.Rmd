@@ -26,10 +26,10 @@ library(ggplot2)
 ```
 
 ```{r}
-interact_databade <- read.csv("../Phylo_Nets_Galapagos/Data_madelaine/Interactions.csv",sep=";", header = TRUE)
-cleared.metaweb<-readRDS("../Phylo_Nets_Galapagos/Data_madelaine/Metaweb_pariles_vertebrate_Genus.RDS", refhook = NULL)
-sp_list<-read.csv("../Phylo_Nets_Galapagos/Data_madelaine/sp_list.csv",sep=";", header = TRUE)
-cleared.interact_db<-readRDS("../Phylo_Nets_Galapagos/Data_madelaine/Inter_predproie_extrapoles_Genus_invertebresgenus_07122020.RDS", refhook = NULL)
+interact_databade <- read.csv("../Phylo.sig_Gal/Data/Interactions.csv",sep=";", header = TRUE)
+cleared.metaweb<-readRDS("../Phylo.sig_Gal/Data/Metaweb_pariles_vertebrate_Genus.RDS", refhook = NULL)
+sp_list<-read.csv("../Phylo.sig_Gal/Data/sp_list.csv",sep=";", header = TRUE)
+cleared.interact_db<-readRDS("../Phylo.sig_Gal/Data/Inter_predproie_extrapoles_Genus_invertebresgenus_07122020.RDS", refhook = NULL)
 ```
 
 ## Obtain adjacency matrix
@@ -83,7 +83,7 @@ getElbows(SVD$d[SVD$d > quantile(SVD$d,0.05)]) #-> elbows:  4, 27, 80
 
 ```{r}
 # Phylogenetic tree
-phylo.tree <- phylobase::readNexus("../Phylo_Nets_Galapagos/Data_madelaine/GPS_all_verts.nwk")
+phylo.tree <- phylobase::readNexus("../Phylo.sig_Gal/Data/GPS_all_verts.nwk")
 phylo.tree <- as(phylo.tree, "phylo")
 
 #Corriger les erreurs d'ortographe dans phylo.tree$tip
@@ -241,16 +241,6 @@ Correlation in just 5 dimensons is 27%. In less than 10 (9), 30%. Increasing the
 We observe decreases in correlation with the addition of some dimensions (at around 70 and 125d).
 
 
-
-
-
-# Illustration example
-
-Create simple network, and plot distance vs dimensionality.
-
-```{r}
-
-```
 
 
 

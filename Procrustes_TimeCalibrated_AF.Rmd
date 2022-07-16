@@ -34,20 +34,20 @@ library(ggplot2)
 
 ###################### Metaweb #######################
 
-#Taxonomie des espèces
-Taxo <- read.csv2(file = "../Phylo_Nets_Galapagos/Data_madelaine/Metaweb_taxo.csv")[-c(1:11),2:13]
+#Taxonomy of species
+Taxo <- read.csv2(file = "../Phylo.sig_Gal/Data/Metaweb_taxo.csv")[-c(1:11),2:13]
 
 #Metaweb
-Metaweb <- read.csv2(file = "~/Documents/Maitrise/BD/BD Dom/BD_Genus/Metaweb_vertebrate_Genus.csv", stringsAsFactors = F, row.names = "X")
+Metaweb <- read.csv2(file = "~/Phylo.sig_Gal/Data/Metaweb_vertebrate_Genus.csv", stringsAsFactors = F, row.names = "X")
 colnames(Metaweb) <- stringi::stri_replace_all(colnames(Metaweb), replacement = " ", regex = "[.]")
 
 
 #Sp list
-#Pour la similarité entre les prédateurs#
+#Predators similarity#
 Metaweb_dj_pred <- as.matrix(vegdist(Metaweb[-which(rowSums(Metaweb) == 0),], method = "jac", binary = T)) #Jacquard avec vegan
 Metaweb_dj_pred <- Metaweb_dj_pred[order(rownames(Metaweb_dj_pred)),order(colnames(Metaweb_dj_pred))]
 
-#Créer une liste des prédateurs
+#Create list of predators
 sp_list <- colnames(Metaweb_dj_pred)#stringi::stri_replace_all(colnames(Metaweb_dj_pred), replacement = "_", regex = " ")
 
 
@@ -68,7 +68,7 @@ Reptiles <- Taxo[Taxo$Class == "Reptilia",]
 ###################### Metaweb #######################
 
 # Phylogenetic tree
-phylo.tree.time <- phylobase::readNewick("../Phylo_Nets_Galapagos/Data_madelaine/Time_tree.nwk")
+phylo.tree.time <- phylobase::readNewick("../Phylo.sig_Gal/Data/Time_tree.nwk")
 phylo.tree.time <- as(phylo.tree.time, "phylo")
 
 #Corriger les erreurs d'ortographe dans phylo.tree$tip
@@ -86,7 +86,7 @@ phylo.tree.time$tip.label[which(phylo.tree.time$tip.label == "Nesomimus parvulus
 phylo.tree.time$tip.label[which(phylo.tree.time$tip.label == "Nesomimus trifasciatus")] <- "Mimus trifasciatus"
 
 
-#retirer les espèces pour lesquelles on n'a pas d'info sur la phylogénie
+#Drop off species without phylogenetic information
 Metaweb_dj_pred.time <- Metaweb_dj_pred[which(rownames(Metaweb_dj_pred) %in% phylo.tree.time$tip.label), which(colnames(Metaweb_dj_pred) %in% phylo.tree.time$tip.label)]
 
 
@@ -217,11 +217,11 @@ row.names(traits_out_df.r.time) = row.names(Metaweb_Reptiles.time)
 ## Determine number of dimensions (TO DO)
 ```{r}
 #choix du nombre de vecteurs singuliers (=traits de pollinisation) a prendre en compte dans la RDA
-singular.values<-SVD$d
+#singular.values<-SVD$d
 #plot de la somme cumulee de la proportion d'inertie expliquee par les traits
-plot(cumsum(singular.values/sum(singular.values))) # ~90
+#plot(cumsum(singular.values/sum(singular.values))) # ~90
 #from Dalla Riva
-getElbows(SVD$d[SVD$d > quantile(SVD$d,0.05)]) #-> elbows:  15 44 64
+#getElbows(SVD$d[SVD$d > quantile(SVD$d,0.05)]) #-> elbows:  15 44 64
 ```
 
 
